@@ -1,0 +1,21 @@
+{
+  "name": "headless-fetch",
+  "version": "1.0.0",
+  "description": "Render JS-heavy pages to text for CLI/agent consumption",
+  "main": "index.js",
+  "scripts": {
+    "netwatch": "node scripts/netwatch.mjs",
+    "get-session": "node scripts/get-session.mjs",
+    "headed-fetch": "node scripts/headed-fetch.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "puppeteer": "^25.4.0"
+  },
+  "bin": {
+    "headless-fetch": "index.js"
+  }
+}
