@@ -15,7 +15,9 @@ Scaling model (mirrors `racps/invitation-generator/pick_rect.py`):
 ## Usage
 
 ```
-python3 mark_boxes.py <image.png> <dpi> [out.json]
+python3 mark_boxes.py <image.png> <dpi> [-o out.json]
+python3 mark_boxes.py image.png 300
+python3 mark_boxes.py image.png 300 -o my_boxes.json
 ```
 
 - Click and drag to draw a box. Each drag-release appends a box; boxes are

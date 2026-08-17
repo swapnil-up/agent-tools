@@ -22,21 +22,18 @@ Exit code is 0 on success, 1 on any error (missing input, missing deps).
 """
 
 import argparse
-import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from util import require_module, require_cli, require_file
+
 
 def markdown_to_html(md_path: Path, title: str, author: str) -> str:
     """Render a Markdown file to a standalone HTML document."""
-    try:
-        import markdown
-    except ImportError:
-        print("Error: python 'markdown' package not installed.", file=sys.stderr)
-        print("Run: pip install markdown", file=sys.stderr)
-        sys.exit(1)
+    markdown = require_module('markdown')
 
     body = markdown.markdown(
         md_path.read_text(encoding="utf-8"),
@@ -63,10 +60,7 @@ def build_epub(
     toc_levels: list,
 ) -> None:
     """Run ebook-convert on an HTML file, mapping heading levels to the TOC."""
-    if not shutil.which("ebook-convert"):
-        print("Error: 'ebook-convert' (calibre) not found on PATH.", file=sys.stderr)
-        print("Install calibre: https://calibre-ebook.com/download", file=sys.stderr)
-        sys.exit(1)
+    require_cli('ebook-convert', 'apt install calibre  or  https://calibre-ebook.com/download')
 
     cmd = ["ebook-convert", str(html_path), str(output_path)]
     for i, level in enumerate(toc_levels, start=1):
@@ -102,10 +96,7 @@ def main():
     )
     args = parser.parse_args()
 
-    md_path = Path(args.input)
-    if not md_path.exists():
-        print(f"Error: input file not found: {md_path}", file=sys.stderr)
-        sys.exit(1)
+    md_path = require_file(args.input, 'input file')
 
     title = args.title or md_path.stem.replace("-", " ").replace("_", " ").title()
     output_path = Path(args.output) if args.output else md_path.with_suffix(".epub")

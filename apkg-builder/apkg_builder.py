@@ -33,7 +33,6 @@ import csv
 import hashlib
 import json
 import os
-import re
 import shutil
 import sys
 import tempfile
@@ -42,11 +41,10 @@ import ssl
 from pathlib import Path
 from typing import Optional
 
-try:
-    import genanki
-except ImportError:
-    print("Error: genanki not installed. Run: pip install genanki", file=sys.stderr)
-    sys.exit(1)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from util import require_module, require_file
+
+genanki = require_module('genanki')
 
 
 # Stable IDs for model and deck (derived from name)
@@ -268,8 +266,10 @@ def main():
 
     # Load data
     if args.csv:
+        require_file(args.csv, 'CSV file')
         members = load_csv(args.csv)
     else:
+        require_file(args.json, 'JSON file')
         members = load_json(args.json)
 
     if not members:
