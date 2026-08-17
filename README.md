@@ -11,6 +11,8 @@ machine-readable files the agent can consume.
 |---|---|
 | [`headless-fetch/`](headless-fetch/) | Drive a real Chromium to render JS-heavy pages to text/HTML/links/markdown. Includes `get-session` (open a visible browser, solve a Cloudflare challenge by hand, save cookies + UA for replay) and `netwatch` (log `/api/` calls). |
 | [`mark-boxes/`](mark-boxes/) | Show an image in a window, let the user drag rectangles over it, and save original-pixel + pt coordinates to JSON for the agent. |
+| [`epub-builder/`](epub-builder/) | Convert a Markdown document to a phone-readable EPUB with a working table of contents (renders via Python `markdown` + calibre `ebook-convert`). |
+| [`apkg-builder/`](apkg-builder/) | Build Anki `.apkg` decks with embedded images from CSV/JSON. |
 
 ## Pattern
 
