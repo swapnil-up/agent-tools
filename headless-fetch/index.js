@@ -69,16 +69,33 @@ for (let i = 1; i < args.length; i++) {
 
 const [vw, vh] = opts.viewport.split("x").map(Number);
 
+// A normal desktop Chrome UA. The default Puppeteer UA advertises
+// "HeadlessChrome", which bot challenges reject on sight.
+const DEFAULT_UA =
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+
 const browser = await puppeteer.launch({
   headless: "new",
-  args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+  // Drop --enable-automation (which flips navigator.webdriver to true) and
+  // blank out the obvious automation feature flag, so bot challenges are
+  // less likely to reject us outright.
+  ignoreDefaultArgs: ["--enable-automation"],
+  args: [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-blink-features=AutomationControlled",
+  ],
 });
 
 try {
   const page = await browser.newPage();
+  await page.evaluateOnNewDocument(() => {
+    Object.defineProperty(navigator, "webdriver", { get: () => undefined });
+  });
   await page.setViewport({ width: vw, height: vh });
 
-  if (opts.userAgent) await page.setUserAgent(opts.userAgent);
+  await page.setUserAgent(opts.userAgent || DEFAULT_UA);
   if (opts.session) {
     const { readFile } = await import("node:fs/promises");
     const session = JSON.parse(await readFile(opts.session, "utf8"));
@@ -113,7 +130,16 @@ try {
     );
   }
 
-  await page.goto(url, { waitUntil: "networkidle0", timeout: opts.timeout });
+  // Some apps (Upwork, chat UIs) never reach "networkidle0" because they
+  // hold long-lived connections open. If idle never settles, fall back to
+  // whatever has loaded and carry on.
+  try {
+    await page.goto(url, { waitUntil: "networkidle0", timeout: opts.timeout });
+  } catch (e) {
+    // The navigation itself already happened; only the idle wait gave up.
+    // Continue with the DOM as-is.
+    if (opts.debug) console.error(`[nav] ${e.message} -- continuing with loaded DOM`);
+  }
 
   if (opts.waitFor) {
     await page.waitForSelector(opts.waitFor, { timeout: opts.timeout });
